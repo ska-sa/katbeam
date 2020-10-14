@@ -37,7 +37,6 @@ class JimBeam(object):
     values are measured in the beam plane along axis-aligned cuts through the beam
     centers.
 
-
     Notes
     ------
     a) This model is a simplification.
@@ -50,12 +49,17 @@ class JimBeam(object):
        use another technique) to remove the antenna pointing errors during the
        observation in order to use a beam model successfully.
 
-
     Parameters
     ----------
     name : Name of model
         Must be either 'MKAT-AA-L-JIM-2020' or 'MKAT-AA-UHF-JIM-2020'
 
+    Request
+    ------- 
+    As a user, please email the author (mattieu@ska.ac.za) with details about
+    your usecase requirements. This may influence future releases. A general
+    description, what extent of the beams are needed, pixelation, frequency
+    resolution, and accuracy requirements are of interest.
 
     Example usage
     -------------

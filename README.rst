@@ -34,6 +34,13 @@ d) Depending on the usecase it may be necessary to do reference pointing (or
    use another technique) to remove the antenna pointing errors during the
    observation in order to use a beam model successfully.
 
+Request:
+
+As a user, please email the author (mattieu@ska.ac.za) with details about
+your usecase requirements. This may influence future releases. A general
+description, what extent of the beams are needed, pixelation, frequency
+resolution, and accuracy requirements are of interest.
+
 Example usage:
 
 import matplotlib.pylab as plt
