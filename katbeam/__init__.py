@@ -14,7 +14,7 @@
 # limitations under the License.
 ################################################################################
 
-from .primarybeam import JimBeam
+from .jimbeam import JimBeam   # noqa: F401
 
 # BEGIN VERSION CHECK
 # Get package version when locally imported from repo or via -e develop install
