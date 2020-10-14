@@ -43,26 +43,28 @@ resolution, and accuracy requirements are of interest.
 
 Example usage:
 
-import matplotlib.pylab as plt
-from katbeam import JimBeam
+.. code:: python
 
-def showbeam(beam,freqMHz=1000,pol='H',beamextent=10.):
-    margin=np.linspace(-beamextent/2.,beamextent/2.,128)
-    x,y=np.meshgrid(margin,margin)
-    if pol=='H':
-        beampixels=beam.HH(x,y,freqMHz)
-    elif pol=='V':
-        beampixels=beam.VV(x,y,freqMHz)
-    else:
-        beampixels=beam.I(x,y,freqMHz)
-        pol='I'
-    plt.clf()
-    plt.imshow(beampixels,extent=[-beamextent/2,beamextent/2,-beamextent/2,beamextent/2])
-    plt.title('%s pol beam\nfor %s at %dMHz'%(pol,beam.name,freqMHz))
-    plt.xlabel('deg')
-    plt.ylabel('deg')
+  import matplotlib.pylab as plt
+  from katbeam import JimBeam
 
-uhfbeam=JimBeam('MKAT-AA-UHF-JIM-2020')
-showbeam(uhfbeam,800,'H',10)
+  def showbeam(beam,freqMHz=1000,pol='H',beamextent=10.):
+      margin=np.linspace(-beamextent/2.,beamextent/2.,128)
+      x,y=np.meshgrid(margin,margin)
+      if pol=='H':
+          beampixels=beam.HH(x,y,freqMHz)
+      elif pol=='V':
+          beampixels=beam.VV(x,y,freqMHz)
+      else:
+          beampixels=beam.I(x,y,freqMHz)
+          pol='I'
+      plt.clf()
+      plt.imshow(beampixels,extent=[-beamextent/2,beamextent/2,-beamextent/2,beamextent/2])
+      plt.title('%s pol beam\nfor %s at %dMHz'%(pol,beam.name,freqMHz))
+      plt.xlabel('deg')
+      plt.ylabel('deg')
+
+  uhfbeam=JimBeam('MKAT-AA-UHF-JIM-2020')
+  showbeam(uhfbeam,800,'H',10)
 
 .. _link: https://books.google.co.za/books?id=Jg6hCwAAQBAJ
