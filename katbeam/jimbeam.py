@@ -143,29 +143,20 @@ class JimBeam(object):
         self.squintlist = table[:, 1:5].T / 60.
         self.fwhmlist = table[:, 5:9].T / 60.
 
-    def jim(self, r):
+    def _interp_squint_fwhm(self, freqMHz):
+        squint = [np.interp(freqMHz, self.freqMHzlist, lst) for lst in self.squintlist]
+        fwhm = [np.interp(freqMHz, self.freqMHzlist, lst) for lst in self.fwhmlist]
+        return squint, fwhm
+
+    def _cosine_taper(self, r):
         # r is normalised such that the half power point occurs at r=0.5:
         # jim(0)=1.0 and jim(0.5)=sqrt(0.5)
         rr = r * 1.18896478
         return np.cos(np.pi * rr) / (1. - 4. * rr**2)
 
-    def _HH(self, x, y, squint, fwhm):
-        return self.jim(np.sqrt(((x - squint[0]) / fwhm[0])**2
-                                + ((y - squint[1]) / fwhm[1])**2))
-
-    def _VV(self, x, y, squint, fwhm):
-        return self.jim(np.sqrt(((x - squint[2]) / fwhm[2])**2
-                                + ((y - squint[3]) / fwhm[3])**2))
-
-    def _I(self, x, y, squint, fwhm):
-        H = self._HH(x, y, squint, fwhm)
-        V = self._VV(x, y, squint, fwhm)
-        return 0.5 * (np.abs(H)**2 + np.abs(V)**2)
-
-    def interp_squint_fwhm(self, freqMHz):
-        squint = [np.interp(freqMHz, self.freqMHzlist, lst) for lst in self.squintlist]
-        fwhm = [np.interp(freqMHz, self.freqMHzlist, lst) for lst in self.fwhmlist]
-        return squint, fwhm
+    def _pattern(self, x, y, squint_x, squint_y, fwhm_x, fwhm_y):
+        return self._cosine_taper(np.sqrt(((x - squint_x) / fwhm_x)**2
+                                          + ((y - squint_y) / fwhm_y)**2))
 
     def HH(self, x, y, freqMHz):
         '''
@@ -176,8 +167,8 @@ class JimBeam(object):
         x,y : arrays specifying coordinates where beam is sampled, in degrees
         freqMHz : frequency, in MHz
         '''
-        squint, fwhm = self.interp_squint_fwhm(freqMHz)
-        return self._HH(x, y, squint, fwhm)
+        squint, fwhm = self._interp_squint_fwhm(freqMHz)
+        return self._pattern(x, y, squint[0], squint[1], fwhm[0], fwhm[1])
 
     def VV(self, x, y, freqMHz):
         '''
@@ -188,8 +179,8 @@ class JimBeam(object):
         x,y : arrays specifying coordinates where beam is sampled, in degrees
         freqMHz : frequency, in MHz
         '''
-        squint, fwhm = self.interp_squint_fwhm(freqMHz)
-        return self._VV(x, y, squint, fwhm)
+        squint, fwhm = self._interp_squint_fwhm(freqMHz)
+        return self._pattern(x, y, squint[2], squint[3], fwhm[2], fwhm[3])
 
     def I(self, x, y, freqMHz):  # noqa: E741, E743
         '''
@@ -200,5 +191,6 @@ class JimBeam(object):
         x,y : arrays specifying coordinates where beam is sampled, in degrees
         freqMHz : frequency, in MHz
         '''
-        squint, fwhm = self.interp_squint_fwhm(freqMHz)
-        return self._I(x, y, squint, fwhm)
+        H = self.HH(x, y, freqMHz)
+        V = self.VV(x, y, freqMHz)
+        return 0.5 * (np.abs(H)**2 + np.abs(V)**2)
