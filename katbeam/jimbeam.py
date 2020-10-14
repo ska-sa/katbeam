@@ -61,7 +61,7 @@ KNOWN_MODELS = {
 
 
 class JimBeam(object):
-    """MeerKAT simplified primary beam models for L and UHF bands
+    """MeerKAT simplified primary beam models for L and UHF bands.
 
     A cosine aperture taper (Essential Radio Astronomy, Condon & Ransom, 2016,
     page 83, link_) is used as a simplified model of the co-polarisation primary beams.
@@ -76,7 +76,7 @@ class JimBeam(object):
     centers.
 
     Notes
-    ------
+    -----
     a) This model is a simplification.
     b) The actual beam varies per antenna, and depends on environmental factors.
     c) Since per-antenna pointing errors during an observation often exceed 1 arc
@@ -91,6 +91,11 @@ class JimBeam(object):
     ----------
     name : str
         Name of model, must be either 'MKAT-AA-L-JIM-2020' or 'MKAT-AA-UHF-JIM-2020'
+
+    Raises
+    ------
+    ValueError
+        If `name` is an unknown model
 
     Request
     -------
@@ -159,38 +164,56 @@ class JimBeam(object):
                                           + ((y - squint_y) / fwhm_y)**2))
 
     def HH(self, x, y, freqMHz):
-        '''
-        Calculates the H co-polarised beam at coordinates provided
+        """Calculate the H co-polarised beam at the provided coordinates.
 
         Parameters
         ----------
-        x,y : arrays specifying coordinates where beam is sampled, in degrees
-        freqMHz : frequency, in MHz
-        '''
+        x, y : arrays of float of the same shape
+            Coordinates where beam is sampled, in degrees
+        freqMHz : float
+            Frequency, in MHz
+
+        Returns
+        -------
+        HH : array of float, same shape as `x` and `y`
+            The H co-polarised beam
+        """
         squint, fwhm = self._interp_squint_fwhm(freqMHz)
         return self._pattern(x, y, squint[0], squint[1], fwhm[0], fwhm[1])
 
     def VV(self, x, y, freqMHz):
-        '''
-        Calculates the V co-polarised beam at coordinates provided
+        """Calculate the V co-polarised beam at the provided coordinates.
 
         Parameters
         ----------
-        x,y : arrays specifying coordinates where beam is sampled, in degrees
-        freqMHz : frequency, in MHz
-        '''
+        x, y : arrays of float of the same shape
+            Coordinates where beam is sampled, in degrees
+        freqMHz : float
+            Frequency, in MHz
+
+        Returns
+        -------
+        VV : array of float, same shape as `x` and `y`
+            The V co-polarised beam
+        """
         squint, fwhm = self._interp_squint_fwhm(freqMHz)
         return self._pattern(x, y, squint[2], squint[3], fwhm[2], fwhm[3])
 
     def I(self, x, y, freqMHz):  # noqa: E741, E743
-        '''
-        Calculates the Stokes I beam at coordinates provided
+        """Calculate the Stokes I beam at the provided coordinates.
 
         Parameters
         ----------
-        x,y : arrays specifying coordinates where beam is sampled, in degrees
-        freqMHz : frequency, in MHz
-        '''
+        x, y : arrays of float of the same shape
+            Coordinates where beam is sampled, in degrees
+        freqMHz : float
+            Frequency, in MHz
+
+        Returns
+        -------
+        I : array of float, same shape as `x` and `y`
+            The Stokes I beam (non-negative)
+        """
         H = self.HH(x, y, freqMHz)
         V = self.VV(x, y, freqMHz)
         return 0.5 * (np.abs(H)**2 + np.abs(V)**2)
