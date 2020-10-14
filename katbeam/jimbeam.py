@@ -138,36 +138,36 @@ class JimBeam(object):
                              .format(name, list(KNOWN_MODELS.keys())))
         else:
             table = np.loadtxt(csv_file, skiprows=2, delimiter=',')
-        self.squintlist=table[:,1:5].T/60#arcmin to degrees [4,nfreq], where 4 refers to Hx,Hy,Vx,Vy components
-        self.fwhmlist=table[:,5:9].T/60#arcmin to degrees [4,nfreq], where 4 refers to Hx,Hy,Vx,Vy components
-        self.freqMHzlist=table[:,0]
+        self.freqMHzlist = table[:, 0]
+        # Shape (4, nfreq), where 4 refers to Hx,Hy,Vx,Vy components (and arcmin to degrees)
+        self.squintlist = table[:, 1:5].T / 60.
+        self.fwhmlist = table[:, 5:9].T / 60.
 
-    #r is normalised such that the half power point occurs at r=0.5: jim(0)=1.0 and jim(0.5)=sqrt(0.5)
-    def jim(self,r):
-        rr=r*1.18896478#achieves jim(0.5)=sqrt(0.5)
-        return np.cos(np.pi*rr)/(1.-4.*(rr**2))
+    def jim(self, r):
+        # r is normalised such that the half power point occurs at r=0.5:
+        # jim(0)=1.0 and jim(0.5)=sqrt(0.5)
+        rr = r * 1.18896478
+        return np.cos(np.pi * rr) / (1. - 4. * rr**2)
 
-    #margin=np.linspace(-beamextent/2.,beamextent/2.,128)
-    #x,y=np.meshgrid(margin,margin)
-    #x,y in degrees
-    def _HH(self,x,y,squint,fwhm):
-        return self.jim(np.sqrt(((x-squint[0])/fwhm[0])**2+((y-squint[1])/fwhm[1])**2))
+    def _HH(self, x, y, squint, fwhm):
+        return self.jim(np.sqrt(((x - squint[0]) / fwhm[0])**2
+                                + ((y - squint[1]) / fwhm[1])**2))
 
-    def _VV(self,x,y,squint,fwhm):
-        return self.jim(np.sqrt(((x-squint[2])/fwhm[2])**2+((y-squint[3])/fwhm[3])**2))
+    def _VV(self, x, y, squint, fwhm):
+        return self.jim(np.sqrt(((x - squint[2]) / fwhm[2])**2
+                                + ((y - squint[3]) / fwhm[3])**2))
 
-    def _I(self,x,y,squint,fwhm):
-        H=self._HH(x,y,squint,fwhm)
-        V=self._VV(x,y,squint,fwhm)
-        I=0.5*(np.abs(H)**2+np.abs(V)**2)
-        return I
+    def _I(self, x, y, squint, fwhm):
+        H = self._HH(x, y, squint, fwhm)
+        V = self._VV(x, y, squint, fwhm)
+        return 0.5 * (np.abs(H)**2 + np.abs(V)**2)
 
-    def interp_squint_fwhm(self,freqMHz):
-        squint=[np.interp(freqMHz,self.freqMHzlist,lst) for lst in self.squintlist]
-        fwhm=[np.interp(freqMHz,self.freqMHzlist,lst) for lst in self.fwhmlist]
-        return squint,fwhm
+    def interp_squint_fwhm(self, freqMHz):
+        squint = [np.interp(freqMHz, self.freqMHzlist, lst) for lst in self.squintlist]
+        fwhm = [np.interp(freqMHz, self.freqMHzlist, lst) for lst in self.fwhmlist]
+        return squint, fwhm
 
-    def HH(self,x,y,freqMHz):
+    def HH(self, x, y, freqMHz):
         '''
         Calculates the H co-polarised beam at coordinates provided
 
@@ -176,10 +176,10 @@ class JimBeam(object):
         x,y : arrays specifying coordinates where beam is sampled, in degrees
         freqMHz : frequency, in MHz
         '''
-        squint,fwhm=self.interp_squint_fwhm(freqMHz)
-        return self._HH(x,y,squint,fwhm)
+        squint, fwhm = self.interp_squint_fwhm(freqMHz)
+        return self._HH(x, y, squint, fwhm)
 
-    def VV(self,x,y,freqMHz):
+    def VV(self, x, y, freqMHz):
         '''
         Calculates the V co-polarised beam at coordinates provided
 
@@ -188,10 +188,10 @@ class JimBeam(object):
         x,y : arrays specifying coordinates where beam is sampled, in degrees
         freqMHz : frequency, in MHz
         '''
-        squint,fwhm=self.interp_squint_fwhm(freqMHz)
-        return self._VV(x,y,squint,fwhm)
+        squint, fwhm = self.interp_squint_fwhm(freqMHz)
+        return self._VV(x, y, squint, fwhm)
 
-    def I(self,x,y,freqMHz):
+    def I(self, x, y, freqMHz):  # noqa: E741, E743
         '''
         Calculates the Stokes I beam at coordinates provided
 
@@ -200,5 +200,5 @@ class JimBeam(object):
         x,y : arrays specifying coordinates where beam is sampled, in degrees
         freqMHz : frequency, in MHz
         '''
-        squint,fwhm=self.interp_squint_fwhm(freqMHz)
-        return self._I(x,y,squint,fwhm)
+        squint, fwhm = self.interp_squint_fwhm(freqMHz)
+        return self._I(x, y, squint, fwhm)
