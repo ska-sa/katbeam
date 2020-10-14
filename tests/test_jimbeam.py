@@ -8,6 +8,11 @@ import matplotlib.pylab as plt  # noqa: E402
 from katbeam import JimBeam  # noqa: E402
 
 
+def test_unknown_model_name():
+    with pytest.raises(ValueError):
+        JimBeam('MKAT-AA-UHF-JIM-2012')
+
+
 @pytest.mark.parametrize(
     'name,pol,x,y,freqMHz,value',
     [
