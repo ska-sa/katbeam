@@ -28,29 +28,29 @@ import matplotlib.pylab as plt
 class JimBeam(object):
     """MeerKAT simplified primary beam models for L- and UHF bands
 
-    A cosine aperture taper (Essential Radio Astronomy, Condon, 2016, 
-    https://books.google.co.za/books?id=Jg6hCwAAQBAJ page 83) is used as a 
-    simplified model of the co-polarisation primary beams. While the sidelobe 
-    level accuracy may be coincidental, the model attains a good fit to 
-    measurements for the mainlobe region. The model is parameterised by measured 
-    frequency dependent pointing, and frequency dependent full width half maximum 
-    beam widths (FWHM). The MeerKAT beams are measured using holography techniques, 
-    and an averaged result at 60 degrees elevation is used here to determine the 
-    frequency dependent parameter values. The pointing errors are determined in 
-    the aperture plane using standard phase fitting techniques, while the FWHM 
-    values are measured in the beam plane along axis-aligned cuts through the beam 
+    A cosine aperture taper (Essential Radio Astronomy, Condon, 2016,
+    https://books.google.co.za/books?id=Jg6hCwAAQBAJ page 83) is used as a
+    simplified model of the co-polarisation primary beams. While the sidelobe
+    level accuracy may be coincidental, the model attains a good fit to
+    measurements for the mainlobe region. The model is parameterised by measured
+    frequency dependent pointing, and frequency dependent full width half maximum
+    beam widths (FWHM). The MeerKAT beams are measured using holography techniques,
+    and an averaged result at 60 degrees elevation is used here to determine the
+    frequency dependent parameter values. The pointing errors are determined in
+    the aperture plane using standard phase fitting techniques, while the FWHM
+    values are measured in the beam plane along axis-aligned cuts through the beam
     centers.
 
     Notes
     ------
     a) This model is a simplification
     b) The actual beam varies per antenna, and depends on environmental factors
-    c) Since per-antenna pointing errors during an observation often exceed 1 arc 
-       minute, the nett 'imaging primary beam' will be slightly broader, and could 
-       be approximated by averaging several of these individual antenna beams with 
+    c) Since per-antenna pointing errors during an observation often exceed 1 arc
+       minute, the nett 'imaging primary beam' will be slightly broader, and could
+       be approximated by averaging several of these individual antenna beams with
        respective antenna pointing errors inserted.
-    d) Depending on the usecase it may be necessary to do reference pointing (or 
-       use another technique) to remove the antenna pointing errors during the 
+    d) Depending on the usecase it may be necessary to do reference pointing (or
+       use another technique) to remove the antenna pointing errors during the
        observation in order to use a beam model successfully.
 
 
@@ -93,7 +93,7 @@ class JimBeam(object):
         950, -1.50, -0.80, -0.09, 0.15, 89.67, 93.10, 89.45, 93.52
         1000, -0.58, -0.83, -0.14, -0.47, 87.38, 88.87, 85.55, 90.83
         1050, 0.32, -0.43, -0.08, -0.72, 86.10, 85.16, 82.32, 88.15'''}
-    
+
         if name in knownmodels:
             table=np.array([line.split(',') for line in knownmodels[name].split('\n')[2:]],dtype='float')
         else:
@@ -138,7 +138,7 @@ class JimBeam(object):
     def I(self,x,y,freqMHz):
         squint,fwhm=self.interp_squint_fwhm(freqMHz)
         return self._I(x,y,squint,fwhm)
-    
+
     def show(self,freqMHz=1350,pol='H',beamextent=10.):
         margin=np.linspace(-beamextent/2.,beamextent/2.,128)
         x,y=np.meshgrid(margin,margin)
