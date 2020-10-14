@@ -15,8 +15,6 @@
 ################################################################################
 
 import numpy as np
-import matplotlib.pylab as plt
-
 
 # --------------------------------------------------------------------------------------------------
 # --- CLASS :  JimBeam
@@ -39,13 +37,14 @@ class JimBeam(object):
     values are measured in the beam plane along axis-aligned cuts through the beam
     centers.
 
+
     Notes
     ------
-    a) This model is a simplification
-    b) The actual beam varies per antenna, and depends on environmental factors
+    a) This model is a simplification.
+    b) The actual beam varies per antenna, and depends on environmental factors.
     c) Since per-antenna pointing errors during an observation often exceed 1 arc
        minute, the nett 'imaging primary beam' will be slightly broader, and could
-       be approximated by averaging several of these individual antenna beams with
+       be approximated by averaging several individual antenna beams with
        respective antenna pointing errors inserted.
     d) Depending on the usecase it may be necessary to do reference pointing (or
        use another technique) to remove the antenna pointing errors during the
@@ -57,10 +56,36 @@ class JimBeam(object):
     name : Name of model
         Must be either 'MKAT-AA-L-JIM-2020' or 'MKAT-AA-UHF-JIM-2020'
 
+
+    Example usage
+    -------------
+    import matplotlib.pylab as plt
+    from katbeam import JimBeam
+
+    def showbeam(beam,freqMHz=1000,pol='H',beamextent=10.):
+        margin=np.linspace(-beamextent/2.,beamextent/2.,128)
+        x,y=np.meshgrid(margin,margin)
+        if pol=='H':
+            beampixels=beam.HH(x,y,freqMHz)
+        elif pol=='V':
+            beampixels=beam.VV(x,y,freqMHz)
+        else:
+            beampixels=beam.I(x,y,freqMHz)
+            pol='I'
+        plt.clf()
+        plt.imshow(beampixels,extent=[-beamextent/2,beamextent/2,-beamextent/2,beamextent/2])
+        plt.title('%s pol beam\nfor %s at %dMHz'%(pol,beam.name,freqMHz))
+        plt.xlabel('deg')
+        plt.ylabel('deg')
+
+    uhfbeam=JimBeam('MKAT-AA-UHF-JIM-2020')
+    showbeam(uhfbeam,800,'H',10)
+
     """
     def __init__(self, name='MKAT-AA-L-JIM-2020'):
         self.name = name
-        knownmodels={'MKAT-AA-L-JIM-2020':''''freq, Hx squint, Hy squint, Vx squint, Vy squint, Hx fwhm, Hy fwhm, Vx fwhm, Vy fwhm
+        knownmodels={'MKAT-AA-L-JIM-2020':
+     '''freq, Hx squint, Hy squint, Vx squint, Vy squint, Hx fwhm, Hy fwhm, Vx fwhm, Vy fwhm
         MHz, arcmin, arcmin, arcmin, arcmin, arcmin, arcmin, arcmin, arcmin
         900, 0.00, 0.88, -0.00, 0.72, 97.98, 100.37, 96.41, 101.89
         950, -0.01, 0.50, -0.03, 0.41, 92.58, 94.70, 90.72, 96.26
@@ -78,7 +103,8 @@ class JimBeam(object):
         1550, -0.40, -0.21, -0.02, 0.74, 56.08, 57.00, 54.83, 58.31
         1600, -0.04, -0.29, -0.04, 0.49, 55.35, 55.24, 53.18, 57.44
         1650, 0.22, -0.18, -0.04, 1.07, 55.22, 53.52, 51.58, 56.90''',
-        'MKAT-AA-UHF-JIM-2020':'''freq, Hx squint, Hy squint, Vx squint, Vy squint, Hx fwhm, Hy fwhm, Vx fwhm, Vy fwhm
+        'MKAT-AA-UHF-JIM-2020':
+     '''freq, Hx squint, Hy squint, Vx squint, Vy squint, Hx fwhm, Hy fwhm, Vx fwhm, Vy fwhm
         MHz, arcmin, arcmin, arcmin, arcmin, arcmin, arcmin, arcmin, arcmin
         550, -0.15, 2.46, -0.08, 0.40, 159.05, 165.92, 157.72, 165.00
         600, -0.00, 0.93, -0.06, 1.22, 147.75, 153.60, 146.55, 155.25
@@ -126,29 +152,37 @@ class JimBeam(object):
         return squint,fwhm
 
     def HH(self,x,y,freqMHz):
+        '''
+        Calculates the H co-polarised beam at coordinates provided
+
+        Parameters
+        ----------
+        x,y : arrays specifying coordinates where beam is sampled, in degrees
+        freqMHz : frequency, in MHz
+        '''
         squint,fwhm=self.interp_squint_fwhm(freqMHz)
         return self._HH(x,y,squint,fwhm)
 
     def VV(self,x,y,freqMHz):
+        '''
+        Calculates the V co-polarised beam at coordinates provided
+
+        Parameters
+        ----------
+        x,y : arrays specifying coordinates where beam is sampled, in degrees
+        freqMHz : frequency, in MHz
+        '''
         squint,fwhm=self.interp_squint_fwhm(freqMHz)
         return self._VV(x,y,squint,fwhm)
 
     def I(self,x,y,freqMHz):
+        '''
+        Calculates the Stokes I beam at coordinates provided
+
+        Parameters
+        ----------
+        x,y : arrays specifying coordinates where beam is sampled, in degrees
+        freqMHz : frequency, in MHz
+        '''
         squint,fwhm=self.interp_squint_fwhm(freqMHz)
         return self._I(x,y,squint,fwhm)
-
-    def show(self,freqMHz=1350,pol='H',beamextent=10.):
-        margin=np.linspace(-beamextent/2.,beamextent/2.,128)
-        x,y=np.meshgrid(margin,margin)
-        if pol=='H':
-            beam=self.HH(x,y,freqMHz)
-        elif pol=='V':
-            beam=self.VV(x,y,freqMHz)
-        else:
-            beam=self.I(x,y,freqMHz)
-            pol='I'
-        plt.clf()
-        plt.imshow(beam,extent=[-beamextent/2,beamextent/2,-beamextent/2,beamextent/2])
-        plt.title('%s pol co-pol beam\nfor %s at %dMHz'%(pol,self.name,freqMHz))
-        plt.xlabel('deg')
-        plt.ylabel('deg')

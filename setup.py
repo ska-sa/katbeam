@@ -56,6 +56,5 @@ setup(name="katbeam",
       use_katversion=True,
       install_requires=[
           "numpy",
-          "matplotlib",
       ],
       )
