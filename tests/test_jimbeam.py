@@ -4,44 +4,46 @@ import matplotlib
 # Enforce a non-interactive Matplotlib backend
 matplotlib.use('agg')
 import matplotlib.pylab as plt  # noqa: E402
-from matplotlib.testing.decorators import image_comparison, remove_ticks_and_titles  # noqa: E402
 
 from katbeam import JimBeam  # noqa: E402
 
 
-def showbeam(beam, freqMHz=1000, pol='H', beamextent=10.):
-    margin = np.linspace(-beamextent/2., beamextent/2., 128)
-    x, y = np.meshgrid(margin, margin)
-    if pol == 'H':
-        beampixels = beam.HH(x, y, freqMHz)
-    elif pol == 'V':
-        beampixels = beam.VV(x, y, freqMHz)
-    else:
-        beampixels = beam.I(x, y, freqMHz)
-        pol = 'I'
-    plt.clf()
-    plt.imshow(beampixels, extent=[-beamextent/2, beamextent/2,
-                                   -beamextent/2, beamextent/2])
-    plt.title('%s pol beam\nfor %s at %dMHz' % (pol, beam.name, freqMHz))
-
-
-GENERATE_IMAGES = False
-
-
 @pytest.mark.parametrize(
-    'name,freqMHz,pol,beamextent,baseline_images',
+    'name,pol,x,y,freqMHz,value',
     [
-        ('MKAT-AA-UHF-JIM-2020', 800, 'H', 10, ['UHF_800_H_10']),
-        ('MKAT-AA-UHF-JIM-2020', 800, 'V', 10, ['UHF_800_V_10']),
-        ('MKAT-AA-UHF-JIM-2020', 800, 'I', 10, ['UHF_800_I_10']),
-        ('MKAT-AA-L-JIM-2020', 1420, 'H', 5, ['L_1420_H_5']),
+        ('MKAT-AA-UHF-JIM-2020', 'HH', 0, 0, 800, 1.0),
+        ('MKAT-AA-L-JIM-2020', 'HH', 0, 0, 1420, 0.999774),
+        ('MKAT-AA-UHF-JIM-2020', 'VV', 0, 1, 800, 0.6600966),
+        ('MKAT-AA-L-JIM-2020', 'VV', 0, 1, 1420, 0.2062726),
+        ('MKAT-AA-UHF-JIM-2020', 'I', 1, 0, 800, 0.4077328),
+        ('MKAT-AA-L-JIM-2020', 'I', 1, 0, 1420, 0.02575332),
     ]
 )
-@image_comparison(baseline_images=None, remove_text=True, extensions=['png'])
-def test_jimbeam(name, freqMHz, pol, beamextent, baseline_images):
+def test_sample_beam_values(name, pol, x, y, freqMHz, value):
     beam = JimBeam(name)
-    showbeam(beam, freqMHz, pol, beamextent)
-    if GENERATE_IMAGES:
-        remove_ticks_and_titles(plt.gcf())
-        plt.savefig('baseline_images/{}/{}.png'
-                    .format(__name__, baseline_images[0]), dpi=100)
+    pattern = getattr(beam, pol)
+    assert pattern(x, y, freqMHz) == pytest.approx(value)
+
+
+def showbeam(beam, freqMHz=1000, pol='HH', beamextent=10.):
+    margin = np.linspace(-beamextent / 2., beamextent / 2., 128)
+    x, y = np.meshgrid(margin, margin)
+    pattern = getattr(beam, pol)
+    beampixels = pattern(x, y, freqMHz)
+    fig, ax = plt.subplots()
+    ax.imshow(beampixels, extent=[-beamextent / 2., beamextent / 2.,
+                                  -beamextent / 2., beamextent / 2.])
+    ax.set_title('{} pol beam\nfor {} at {:d}MHz'.format(pol, beam.name, freqMHz))
+    return fig
+
+
+@pytest.mark.mpl_image_compare(remove_text=True, filename='UHF_800_HH_10.png')
+def test_UHF_beam_image():
+    beam = JimBeam('MKAT-AA-UHF-JIM-2020')
+    return showbeam(beam, 800, 'HH', 10.)
+
+
+@pytest.mark.mpl_image_compare(remove_text=True, filename='L_1420_VV_5.png')
+def test_L_beam_image():
+    beam = JimBeam('MKAT-AA-L-JIM-2020')
+    return showbeam(beam, 1420, 'VV', 5.)
