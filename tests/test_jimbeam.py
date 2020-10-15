@@ -22,6 +22,10 @@ def test_unknown_model_name():
         ('MKAT-AA-L-JIM-2020', 'VV', 0, 1, 1420, 0.2062726),
         ('MKAT-AA-UHF-JIM-2020', 'I', 1, 0, 800, 0.4077328),
         ('MKAT-AA-L-JIM-2020', 'I', 1, 0, 1420, 0.02575332),
+        # Check centre and half-power point
+        ('MKAT-AA-L-JIM-2020', 'VV', -0.02 / 60, 1.14 / 60, 1500, 1.0),
+        ('MKAT-AA-L-JIM-2020', 'VV', -0.02 / 60, (1.14 + 0.5 * 59.31) / 60,
+         1500, np.sqrt(0.5)),
     ]
 )
 def test_sample_beam_values(name, pol, x, y, freqMHz, value):
