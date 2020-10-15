@@ -55,6 +55,18 @@ KNOWN_MODELS = {
         1050,      0.32,     -0.43,     -0.08,     -0.72,   86.10,   85.16,   82.32,   88.15'''
 }
 
+
+def _cosine_taper(r):
+    # r is normalised such that the half power point occurs at r=0.5:
+    # _cosine_taper(0) = 1.0
+    # _cosine_taper(0.5) = sqrt(0.5)
+    rr = r * 1.18896478
+    return np.cos(np.pi * rr) / (1. - 4. * rr**2)
+
+
+def _pattern(x, y, squint_x, squint_y, fwhm_x, fwhm_y):
+    return _cosine_taper(np.sqrt(((x - squint_x) / fwhm_x)**2 + ((y - squint_y) / fwhm_y)**2))
+
 # --------------------------------------------------------------------------------------------------
 # --- CLASS :  JimBeam
 # --------------------------------------------------------------------------------------------------
@@ -153,16 +165,6 @@ class JimBeam(object):
         fwhm = [np.interp(freqMHz, self.freqMHzlist, lst) for lst in self.fwhmlist]
         return squint, fwhm
 
-    def _cosine_taper(self, r):
-        # r is normalised such that the half power point occurs at r=0.5:
-        # jim(0)=1.0 and jim(0.5)=sqrt(0.5)
-        rr = r * 1.18896478
-        return np.cos(np.pi * rr) / (1. - 4. * rr**2)
-
-    def _pattern(self, x, y, squint_x, squint_y, fwhm_x, fwhm_y):
-        return self._cosine_taper(np.sqrt(((x - squint_x) / fwhm_x)**2
-                                          + ((y - squint_y) / fwhm_y)**2))
-
     def HH(self, x, y, freqMHz):
         """Calculate the H co-polarised beam at the provided coordinates.
 
@@ -179,7 +181,7 @@ class JimBeam(object):
             The H co-polarised beam
         """
         squint, fwhm = self._interp_squint_fwhm(freqMHz)
-        return self._pattern(x, y, squint[0], squint[1], fwhm[0], fwhm[1])
+        return _pattern(x, y, squint[0], squint[1], fwhm[0], fwhm[1])
 
     def VV(self, x, y, freqMHz):
         """Calculate the V co-polarised beam at the provided coordinates.
@@ -197,7 +199,7 @@ class JimBeam(object):
             The V co-polarised beam
         """
         squint, fwhm = self._interp_squint_fwhm(freqMHz)
-        return self._pattern(x, y, squint[2], squint[3], fwhm[2], fwhm[3])
+        return _pattern(x, y, squint[2], squint[3], fwhm[2], fwhm[3])
 
     def I(self, x, y, freqMHz):  # noqa: E741, E743
         """Calculate the Stokes I beam at the provided coordinates.
