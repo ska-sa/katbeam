@@ -46,6 +46,7 @@ Example usage:
 .. code:: python
 
   import matplotlib.pylab as plt
+  import numpy as np
   from katbeam import JimBeam
 
   def showbeam(beam,freqMHz=1000,pol='H',beamextent=10.):
