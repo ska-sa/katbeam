@@ -18,6 +18,7 @@ import io
 
 import numpy as np
 
+#see katholog:build_holography_database.py and katholog:tabulate_beam_parameters.py
 KNOWN_MODELS = {
     'MKAT-AA-L-JIM-2020':
     u'''freq, Hx squint, Hy squint, Vx squint, Vy squint, Hx fwhm, Hy fwhm, Vx fwhm, Vy fwhm
