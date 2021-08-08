@@ -101,7 +101,7 @@ def _cosine_taper(r):
     # r is normalised such that the half power point occurs at r=0.5:
     # _cosine_taper(0) = 1.0
     # _cosine_taper(0.5) = sqrt(0.5)
-    rr = r * 1.18896478
+    rr = r * 1.1889647809329453#used scipy.optimize.newton to determine higher precision scale factor
     return np.cos(np.pi * rr) / (1. - 4. * rr**2)
 
 
