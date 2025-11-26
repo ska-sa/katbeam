@@ -15,7 +15,6 @@
 ################################################################################
 
 from .jimbeam import JimBeam   # noqa: F401
-from .idftbeam import idftBeam
 
 # BEGIN VERSION CHECK
 # Get package version when locally imported from repo or via -e develop install
