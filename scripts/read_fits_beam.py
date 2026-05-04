@@ -5,7 +5,9 @@ import astropy.io.fits as pyfits
 import matplotlib.pyplot as plt
 import katpoint
 import scipy
+import numpy as np
 
+#note Ibeam is in power, HHbeam etc is voltage
 def read_beam_file(filename):
     if filename.endswith('.npz'): #read npz beam file
         d=np.load(filename)
@@ -27,14 +29,15 @@ def read_beam_file(filename):
         HVbeam=d.data[0,3,:,:,:]+1j*d.data[1,3,:,:,:]
     else:
         raise Exception('Unknown file format')
+    Ibeam=0.5*(np.abs(HHbeam)**2+np.abs(VVbeam)**2+np.abs(HVbeam)**2+np.abs(VHbeam)**2)
     margin_l=margin_l_deg*np.pi/180
     margin_m=margin_m_deg*np.pi/180
     ll,mm=np.meshgrid(margin_l,margin_m)
-    return freqMHz,ll,mm,HHbeam,HVbeam,VHbeam,VVbeam
+    return freqMHz,ll,mm,HHbeam,HVbeam,VHbeam,VVbeam,Ibeam
 
 def plotbeam_az_el_cuts(filename,ichan=0,el_target_deg=60,cut='az'):
     az_target_deg=0
-    freqMHz,ll,mm,HHbeam,HVbeam,VHbeam,VVbeam=read_beam_file(filename)
+    freqMHz,ll,mm,HHbeam,HVbeam,VHbeam,VVbeam,Ibeam=read_beam_file(filename)
 
     #make grid of cuts in az or el due to az/el offsets from scanned target
     if cut=='az':#azimuth cut sample locations
