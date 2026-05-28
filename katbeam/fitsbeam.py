@@ -34,6 +34,9 @@ class FitsBeam(object):
     filename : str
         Name and path of fits file to load.
 
+    interpmethod : str
+        Interpolation method to use, either 'linear' or 'cubic'
+
     Raises
     ------
     ValueError
@@ -51,9 +54,19 @@ class FitsBeam(object):
 
     """
 
-    def __init__(self, filename):
+    def __init__(self, filename, interpmethod = 'linear'):
         self.filename = filename
+        self.interpmethod = interpmethod
         self.freqMHz, self.l_deg, self.m_deg, self.HHbeam, self.HVbeam, self.VHbeam, self.VVbeam, self.Ibeam = FitsBeam.read_beam_file(filename)
+        self.reHHinterp = RegularGridInterpolator((self.freqMHz, self.m_deg, self.l_deg), np.real(self.HHbeam), method=self.interpmethod,bounds_error=False)
+        self.imHHinterp = RegularGridInterpolator((self.freqMHz, self.m_deg, self.l_deg), np.imag(self.HHbeam), method=self.interpmethod,bounds_error=False)
+        self.reHVinterp = RegularGridInterpolator((self.freqMHz, self.m_deg, self.l_deg), np.real(self.HVbeam), method=self.interpmethod,bounds_error=False)
+        self.imHVinterp = RegularGridInterpolator((self.freqMHz, self.m_deg, self.l_deg), np.imag(self.HVbeam), method=self.interpmethod,bounds_error=False)
+        self.reVHinterp = RegularGridInterpolator((self.freqMHz, self.m_deg, self.l_deg), np.real(self.VHbeam), method=self.interpmethod,bounds_error=False)
+        self.imVHinterp = RegularGridInterpolator((self.freqMHz, self.m_deg, self.l_deg), np.imag(self.VHbeam), method=self.interpmethod,bounds_error=False)
+        self.reVVinterp = RegularGridInterpolator((self.freqMHz, self.m_deg, self.l_deg), np.real(self.VVbeam), method=self.interpmethod,bounds_error=False)
+        self.imVVinterp = RegularGridInterpolator((self.freqMHz, self.m_deg, self.l_deg), np.imag(self.VVbeam), method=self.interpmethod,bounds_error=False)
+        self.absIinterp = RegularGridInterpolator((self.freqMHz, self.m_deg, self.l_deg), self.Ibeam, method=self.interpmethod,bounds_error=False)
 
     @staticmethod
     def read_beam_file(filename):
@@ -102,11 +115,9 @@ class FitsBeam(object):
         HH : array of floats with same shape as the input arrays
             The H co-polarised beam (H feed response due to H polarised signal)
         """
-        reinterp = RegularGridInterpolator((self.freqMHz, self.m_deg, self.l_deg), np.real(self.HHbeam), method='linear',bounds_error=False)
-        iminterp = RegularGridInterpolator((self.freqMHz, self.m_deg, self.l_deg), np.imag(self.HHbeam), method='linear',bounds_error=False)
         ffreqMHz = freqMHz+np.zeros(ll_deg.shape)#broadcasts to shape of freqMHz to that of input array
         pts=np.array(list(zip(ffreqMHz.reshape(-1),mm_deg.reshape(-1),ll_deg.reshape(-1))))
-        return (reinterp(pts)+1j*iminterp(pts)).reshape(ll_deg.shape)
+        return (self.reHHinterp(pts)+1j*self.imHHinterp(pts)).reshape(ll_deg.shape)
 
     def HV(self, ll_deg, mm_deg, freqMHz):
         """Calculate the H cross-polarised beam at the provided coordinates.
@@ -123,11 +134,9 @@ class FitsBeam(object):
         HV : array of floats with same shape as the input arrays
             The H cross-polarised beam (H feed response due to V polarised signal)
         """
-        reinterp = RegularGridInterpolator((self.freqMHz, self.m_deg, self.l_deg), np.real(self.HVbeam), method='linear',bounds_error=False)
-        iminterp = RegularGridInterpolator((self.freqMHz, self.m_deg, self.l_deg), np.imag(self.HVbeam), method='linear',bounds_error=False)
         ffreqMHz = freqMHz+np.zeros(ll_deg.shape)#broadcasts to shape of freqMHz to that of input array
         pts=np.array(list(zip(ffreqMHz.reshape(-1),mm_deg.reshape(-1),ll_deg.reshape(-1))))
-        return (reinterp(pts)+1j*iminterp(pts)).reshape(ll_deg.shape)
+        return (self.reHVinterp(pts)+1j*self.imHVinterp(pts)).reshape(ll_deg.shape)
 
     def VH(self, ll_deg, mm_deg, freqMHz):
         """Calculate the V cross-polarised beam at the provided coordinates.
@@ -144,11 +153,9 @@ class FitsBeam(object):
         VH : array of floats with same shape as the input arrays
             The V cross-polarised beam (V feed response due to H polarised signal)
         """
-        reinterp = RegularGridInterpolator((self.freqMHz, self.m_deg, self.l_deg), np.real(self.VHbeam), method='linear',bounds_error=False)
-        iminterp = RegularGridInterpolator((self.freqMHz, self.m_deg, self.l_deg), np.imag(self.VHbeam), method='linear',bounds_error=False)
         ffreqMHz = freqMHz+np.zeros(ll_deg.shape)#broadcasts to shape of freqMHz to that of input array
         pts=np.array(list(zip(ffreqMHz.reshape(-1),mm_deg.reshape(-1),ll_deg.reshape(-1))))
-        return (reinterp(pts)+1j*iminterp(pts)).reshape(ll_deg.shape)
+        return (self.reVHinterp(pts)+1j*self.imVHinterp(pts)).reshape(ll_deg.shape)
 
     def VV(self, ll_deg, mm_deg, freqMHz):
         """Calculate the V co-polarised beam at the provided coordinates.
@@ -165,11 +172,9 @@ class FitsBeam(object):
         VV : array of floats with same shape as the input arrays
             The V co-polarised beam (V feed response due to V polarised signal)
         """
-        reinterp = RegularGridInterpolator((self.freqMHz, self.m_deg, self.l_deg), np.real(self.VVbeam), method='linear',bounds_error=False)
-        iminterp = RegularGridInterpolator((self.freqMHz, self.m_deg, self.l_deg), np.imag(self.VVbeam), method='linear',bounds_error=False)
         ffreqMHz = freqMHz+np.zeros(ll_deg.shape)#broadcasts to shape of freqMHz to that of input array
         pts=np.array(list(zip(ffreqMHz.reshape(-1),mm_deg.reshape(-1),ll_deg.reshape(-1))))
-        return (reinterp(pts)+1j*iminterp(pts)).reshape(ll_deg.shape)
+        return (self.reVVinterp(pts)+1j*self.imVVinterp(pts)).reshape(ll_deg.shape)
 
     def I(self, ll_deg, mm_deg, freqMHz):
         """Calculate the Stokes I beam at the provided coordinates.
@@ -186,12 +191,38 @@ class FitsBeam(object):
         I : array of floats with same shape as the input arrays
             The Stokes I beam (combined feed response due to unpolarised signal)
         """
-        absinterp = RegularGridInterpolator((self.freqMHz, self.m_deg, self.l_deg), self.Ibeam, method='linear',bounds_error=False)
         ffreqMHz = freqMHz+np.zeros(ll_deg.shape)#broadcasts to shape of freqMHz to that of input array
         pts=np.array(list(zip(ffreqMHz.reshape(-1),mm_deg.reshape(-1),ll_deg.reshape(-1))))
-        return (absinterp(pts)).reshape(ll_deg.shape)
+        return (self.absIinterp(pts)).reshape(ll_deg.shape)
 
     def showbeam(self, freqMHz=1500, pol='HV',component='abs', beamextent=None,beamgridsize=128,doclf=True,docolorbar=True,colmap='jet',clim=None):
+        """Displays a view of the beam on the sky as seen from the antenna mount.
+
+        Parameters
+        ----------
+        ll_deg, mm_deg : arrays of floats of matching shape
+            Coordinates where beam must be sampled, in degrees (SIN projection)
+        freqMHz : float
+            Frequency, in MHz
+        pol : string
+            Polarisation, one of 'HH','HV','VH','VV', or 'I', 
+            where pol[0] refers to feed and pol[1] refers to the beacon where applicable.
+        component : string
+            Component to be shown, one of 'abs','pow','phase','angle','real','imag'
+        beamextent : float or None
+            Total extent of beam in projected degrees
+        beamgridsize : int
+            Gridsize to be used for display
+        doclf : bool
+            Clears figure first if True
+        docolorbar : bool
+            Show colorbar if True
+        colmap : string
+            Name of colormap to use
+        clim : list or None
+            Limits to use to scale image colorscale, None is autoscale, or lower and upper limits in list
+
+        """
         if beamextent is None:
             beamextent=np.max(np.abs(self.l_deg))*2
         l_deg=np.linspace(-beamextent/2.,beamextent/2.,beamgridsize)
