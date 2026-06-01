@@ -52,9 +52,9 @@ setup(name="katbeam",
       keywords="meerkat ska",
       zip_safe=False,
       python_requires=">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, <4",
-      setup_requires=["katversion","scipy","astropy"],
+      setup_requires=["katversion"],
       use_katversion=True,
       install_requires=[
-          "numpy",
+          "numpy","scipy","astropy"
       ],
       )
