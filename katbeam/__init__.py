@@ -16,6 +16,7 @@
 
 from .jimbeam import JimBeam   # noqa: F401
 from .fitsbeam import FitsBeam # noqa: F401
+from .polcaldb import PolCalDB # noqa: F401
 
 # BEGIN VERSION CHECK
 # Get package version when locally imported from repo or via -e develop install
