@@ -62,7 +62,7 @@ class PolCalDB(object):
         self.delaypath = delaypath
         self.solutionfilename = solutionfilename
 
-    def hvphase(self, delay_cbid, refant, freqMHz=None):
+    def hvphase(self, delay_cbid, refant, freqMHz=None,verbose=False,return_components=False):
         """Determines the hvphase solution that is applicable to a given dataset.
 
         Parameters
@@ -71,6 +71,11 @@ class PolCalDB(object):
             cbid of delaycal file
         refant : str
             antenna name used as reference antenna
+        freqMHz: array of floats
+            Frequency channels of where to supply hvphase
+            default None provides what is available
+        verbose: bool
+            print out comments
 
         Returns
         -------
@@ -84,6 +89,12 @@ class PolCalDB(object):
         soln=np.load(self.solutionfilename, allow_pickle=True)
         ndfreqMHz=nd['freqMHz']
         ndphase=nd['ndsphase'][nd['antnames'].tolist().index(refant),:]
+        self.solutionreceivers=soln['receivers']
+        if refant not in soln['receivers'].tolist() or refant not in nd['antnames']:
+            raise ValueError("refant %s not available"%(refant))
+        if soln['receivers'].tolist()[refant]!=nd['receivers'][nd['antnames'].tolist().index(refant)]:
+            possible_refants=sorted([str(antname) for antname in nd['antnames'] if soln['receivers'].tolist()[antname]==nd['receivers'][nd['antnames'].tolist().index(antname)]])
+            raise ValueError("refant %s receiver mismatch delaycal: %s, solution: %s, choose another refant from"%(refant,soln['receivers'].tolist()[refant],nd['receivers'][nd['antnames'].tolist().index(refant)]),possible_refants)
         if freqMHz is None:
             freqMHz=ndfreqMHz
         elif not np.allclose(freqMHz,ndfreqMHz):
@@ -94,87 +105,8 @@ class PolCalDB(object):
             nd_sky_phase=np.interp(freqMHz,soln['freqMHz'],soln['nd_sky'].tolist()[refant])
              
         hvphase=ndphase+nd_sky_phase
+        if verbose:
+            print('%s receivername: %s'%(refant,soln['receivers'].tolist()[refant]))
+        if return_components:
+            return freqMHz,hvphase,ndphase,nd_sky_phase
         return freqMHz,hvphase
-
-if False:#UHF case 1666977074 Fri Oct 28 19:11:14 2022 Jonathan/Victoria Samboco/myburgh.talon
-    pdb=PolCalDB(delaypath='/home/mattieu/polcal/ndphase',solutionfilename='/home/mattieu/polcal/ndsky/U_best_2022_2025_nd_sky.npz')
-    freqMHz,hvphase=pdb.hvphase(delay_cbid=1666976499,refant='m000')
-    pdb=PolCalDB(delaypath='/home/mattieu/polcal/ndphase',solutionfilename='/home/mattieu/polcal/ndsky/U_best_2022_nd_sky.npz')
-    freqMHz,hvphase=pdb.hvphase(delay_cbid=1666976499,refant='m000')
-    pdb=PolCalDB(delaypath='/home/mattieu/polcal/ndphase',solutionfilename='/home/mattieu/polcal/ndsky/U_best_2026_nd_sky.npz')
-    freqMHz,hvphase=pdb.hvphase(delay_cbid=1666976499,refant='m000')
-    pdb=PolCalDB(delaypath='/home/mattieu/polcal/ndphase',solutionfilename='/home/mattieu/polcal/ndsky/U_nobest_since2024_nd_sky.npz')
-    freqMHz,hvphase=pdb.hvphase(delay_cbid=1666976499,refant='m000')
-     
-if False:
-      refant='m060'
-      delay_cbid=1616735560
-      clf()
-      polcal=PolCalDB(delaypath='/home/mattieu/polcal/ndphase',solutionfilename='/home/mattieu/polcal/paper/bill_test_best_2019.npz')
-      freqMHz,hvphase=polcal.hvphase(delay_cbid=delay_cbid,refant=refant)
-      plot(freqMHz,hvphase,label='2019')
-      polcal=PolCalDB(delaypath='/home/mattieu/polcal/ndphase',solutionfilename='/home/mattieu/polcal/paper/bill_test_best_2021.npz')
-      freqMHz,hvphase=polcal.hvphase(delay_cbid=delay_cbid,refant=refant)
-      plot(freqMHz,hvphase,label='2021')
-      polcal=PolCalDB(delaypath='/home/mattieu/polcal/ndphase',solutionfilename='/home/mattieu/polcal/paper/bill_test_best_2022.npz')
-      freqMHz,hvphase=polcal.hvphase(delay_cbid=delay_cbid,refant=refant)
-      plot(freqMHz,hvphase,label='2022')
-      polcal=PolCalDB(delaypath='/home/mattieu/polcal/ndphase',solutionfilename='/home/mattieu/polcal/paper/bill_test_best_2023.npz')
-      freqMHz,hvphase=polcal.hvphase(delay_cbid=delay_cbid,refant=refant)
-      plot(freqMHz,hvphase,label='2023')
-      polcal=PolCalDB(delaypath='/home/mattieu/polcal/ndphase',solutionfilename='/home/mattieu/polcal/paper/bill_test_best_2024.npz')
-      freqMHz,hvphase=polcal.hvphase(delay_cbid=delay_cbid,refant=refant)
-      plot(freqMHz,hvphase,label='2024')
-      polcal=PolCalDB(delaypath='/home/mattieu/polcal/ndphase',solutionfilename='/home/mattieu/polcal/paper/bill_test_best_2025.npz')
-      freqMHz,hvphase=polcal.hvphase(delay_cbid=delay_cbid,refant=refant)
-      plot(freqMHz,hvphase,label='2025')
-      polcal=PolCalDB(delaypath='/home/mattieu/polcal/ndphase',solutionfilename='/home/mattieu/polcal/paper/bill_test_best_2026.npz')
-      freqMHz,hvphase=polcal.hvphase(delay_cbid=delay_cbid,refant=refant)
-      plot(freqMHz,hvphase,label='2026')
-      polcal=PolCalDB(delaypath='/home/mattieu/polcal/ndphase',solutionfilename='/home/mattieu/polcal/paper/bill_test_best_new.npz')
-      freqMHz,hvphase=polcal.hvphase(delay_cbid=delay_cbid,refant=refant)
-      plot(freqMHz,hvphase,'k',label='since 2020')
-      polcal=PolCalDB(delaypath='/home/mattieu/polcal/ndphase',solutionfilename='/home/mattieu/polcal/paper/bill_test_best_since2020.npz')
-      freqMHz,hvphase=polcal.hvphase(delay_cbid=delay_cbid,refant=refant)
-      plot(freqMHz,hvphase,'r',label='since 2020')
-      
-      legend()
-      title(refant)
-
-if False:
-      refant='m050'
-      delay_cbid=1666976499
-      clf()
-      polcal=PolCalDB(delaypath='/home/mattieu/polcal/ndphase',solutionfilename='/home/mattieu/polcal/ndsky/U_best_2019_nd_sky.npz')
-      freqMHz,hvphase=polcal.hvphase(delay_cbid=delay_cbid,refant=refant)
-      plot(freqMHz,hvphase,label='2019')
-      polcal=PolCalDB(delaypath='/home/mattieu/polcal/ndphase',solutionfilename='/home/mattieu/polcal/ndsky/U_best_2020_nd_sky.npz')
-      freqMHz,hvphase=polcal.hvphase(delay_cbid=delay_cbid,refant=refant)
-      plot(freqMHz,hvphase,label='2020')
-      polcal=PolCalDB(delaypath='/home/mattieu/polcal/ndphase',solutionfilename='/home/mattieu/polcal/ndsky/U_best_2021_nd_sky.npz')
-      freqMHz,hvphase=polcal.hvphase(delay_cbid=delay_cbid,refant=refant)
-      plot(freqMHz,hvphase,label='2021')
-      polcal=PolCalDB(delaypath='/home/mattieu/polcal/ndphase',solutionfilename='/home/mattieu/polcal/ndsky/U_best_2022_nd_sky.npz')
-      freqMHz,hvphase=polcal.hvphase(delay_cbid=delay_cbid,refant=refant)
-      plot(freqMHz,hvphase,label='2022')
-      polcal=PolCalDB(delaypath='/home/mattieu/polcal/ndphase',solutionfilename='/home/mattieu/polcal/ndsky/U_best_2023_nd_sky.npz')
-      freqMHz,hvphase=polcal.hvphase(delay_cbid=delay_cbid,refant=refant)
-      plot(freqMHz,hvphase,label='2023')
-      polcal=PolCalDB(delaypath='/home/mattieu/polcal/ndphase',solutionfilename='/home/mattieu/polcal/ndsky/U_best_2024_nd_sky.npz')
-      freqMHz,hvphase=polcal.hvphase(delay_cbid=delay_cbid,refant=refant)
-      plot(freqMHz,hvphase,label='2024')
-      polcal=PolCalDB(delaypath='/home/mattieu/polcal/ndphase',solutionfilename='/home/mattieu/polcal/ndsky/U_best_2025_nd_sky.npz')
-      freqMHz,hvphase=polcal.hvphase(delay_cbid=delay_cbid,refant=refant)
-      plot(freqMHz,hvphase,label='2025')
-      polcal=PolCalDB(delaypath='/home/mattieu/polcal/ndphase',solutionfilename='/home/mattieu/polcal/ndsky/U_best_2026_nd_sky.npz')
-      freqMHz,hvphase=polcal.hvphase(delay_cbid=delay_cbid,refant=refant)
-      plot(freqMHz,hvphase,label='2026')
-    #   polcal=PolCalDB(delaypath='/home/mattieu/polcal/ndphase',solutionfilename='/home/mattieu/polcal/ndsky/bill_test_best_new.npz')
-    #   freqMHz,hvphase=polcal.hvphase(delay_cbid=delay_cbid,refant=refant)
-    #   plot(freqMHz,hvphase,'k',label='since 2020')
-    #   polcal=PolCalDB(delaypath='/home/mattieu/polcal/ndphase',solutionfilename='/home/mattieu/polcal/ndsky/bill_test_best_since2020.npz')
-    #   freqMHz,hvphase=polcal.hvphase(delay_cbid=delay_cbid,refant=refant)
-    #   plot(freqMHz,hvphase,'r',label='since 2020')
-      
-      legend()
-      title(refant)
